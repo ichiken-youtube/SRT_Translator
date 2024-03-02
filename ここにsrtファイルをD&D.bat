@@ -16,5 +16,4 @@ if "%~1"=="" (
 :: Pythonコマンドとスクリプトのパスを使用してPythonスクリプトを実行
 python translate_srt.py "%~1"
 
-echo 翻訳が完了しました。
-pause
+if %ERRORLEVEL% neq 0 pause
