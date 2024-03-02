@@ -69,29 +69,28 @@ if __name__ == "__main__":
             ],
             [
                 sg.Button('辞書削除', key = '-DEL-BUTTON-'),
-                sg.Input('なにかテキストを入力してください', key='-GLOSSARY-NAME-', size=(10,50)),
+                sg.Input('辞書名', key='-GLOSSARY-NAME-', size=(10,50)),
                 sg.Text('->')
             ]
         ] ,
-        size=(240, 300) #幅,高さ
+        size=(240, 225) #幅,高さ
     )
 
     frame2 = sg.Frame('',
         [
             [sg.Table(values=[],headings=["Source", "Target"], col_widths=[15,15], auto_size_columns=False, key='-WORD-TABLE-')],
             [
-                sg.Input('なにかテキストを入力してください', key='-SOURCE-WORD-', size=(10,50)),
+                sg.Input('JP', key='-SOURCE-WORD-', size=(10,50)),
                 sg.Text('->'),
-                sg.Input('なにかテキストを入力してください', key='-TARGET-WORD-', size=(10,50)),
+                sg.Input('EN', key='-TARGET-WORD-', size=(10,50)),
                 sg.Button('登録', key = '-ADD-BUTTON-')
             ]
         ],
-        size=(300, 300) #幅,高さ
+        size=(300, 225) #幅,高さ
     )
 
     # GUIレイアウトの定義
     layout = [
-        #以下[]で1行の扱いになる。カンマ区切りで横に部品を並べられる
         [
             frame1,
             frame2
