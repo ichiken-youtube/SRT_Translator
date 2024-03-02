@@ -110,19 +110,8 @@ if __name__ == "__main__":
 
     ]
 
-    '''entries = {"イチケン": "ICHIKEN"}
-    my_glossary = translator.create_glossary(
-        "General",
-        source_lang="JA",
-        target_lang="EN-US",
-        entries=entries,
-    )'''
-
     # ウィンドウの作成
     window = sg.Window('SRT Traslator', layout)
-
-
-
     # イベントループ
     while True:
         event, values = window.read()
