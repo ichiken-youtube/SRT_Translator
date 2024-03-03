@@ -7,11 +7,12 @@ import settings
 # DeepL APIキーを設定
 translator = deepl.Translator(settings.DEEPL_API_KEY)
 
-def translate_subtitle(input_file,dict):
+def translate_subtitle(input_file,dict=''):
     output_file = input_file.rsplit('.', 1)[0] + "_EN.srt"
 
     with open(input_file, 'r', encoding='utf-8') as file:
         content = file.read()
+    #最終行が正規表現にマッチしないので改行追加
     content = content + '\n\n'
     # 字幕のテキスト部分を抽出
     pattern = re.compile(r'\d+\n\d{2}:\d{2}:\d{2}.\d{3} --> \d{2}:\d{2}:\d{2}.\d{3}\n(.*?)\n\n', re.DOTALL)
@@ -20,11 +21,16 @@ def translate_subtitle(input_file,dict):
     translated_content = content
     #print(matches)
     for text in matches:
-        print(text)
+        print('\nSource : '+text)
         if len(text) == 0:
             continue
-        # テキストを英語に翻訳
-        result = translator.translate_text(text, source_lang="JA", target_lang="EN-US",glossary=dict)
+        result=''
+        if len(dict)>0:
+            # テキストを英語に翻訳
+            result = translator.translate_text(text, source_lang="JA", target_lang="EN-US",glossary=dict)
+        else:
+            result = translator.translate_text(text, source_lang="JA", target_lang="EN-US")
+        print('Result : '+result.text)
         translated_content = translated_content.replace(text, result.text, 1)
 
     # 翻訳された内容を新しいファイルに書き出し
@@ -129,8 +135,15 @@ if __name__ == "__main__":
                         window['-WORD-TABLE-'].update([[key, value] for key, value in words.items()])
         
         elif event == '-RUN-':
-            translate_subtitle(values['-FILE-PATH-'],glossary_list[0][1].glossary_id)
-        
+            if values['-USE-GLS-']:
+                if values['-GLOSSARY-LIST-']:
+                    print('辞書を使用します。 '+glossary_names[values['-GLOSSARY-LIST-'][0]][0])
+                    translate_subtitle(values['-FILE-PATH-'],glossary_list[values['-GLOSSARY-LIST-'][0]][1].glossary_id)
+                else:
+                    print('辞書を選択してください。')
+            else:
+                translate_subtitle(values['-FILE-PATH-'])
+
         elif event == '-ADD-BUTTON-' and len(values['-GLOSSARY-NAME-'])>0:
             word_dic = {}
             if len(values['-GLOSSARY-LIST-'])>0:
