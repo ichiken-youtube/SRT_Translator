@@ -7,15 +7,17 @@ import settings
 # DeepL APIキーを設定
 translator = deepl.Translator(settings.DEEPL_API_KEY)
 
-def translate_subtitle(input_file,dict=''):
-    output_file = input_file.rsplit('.', 1)[0] + "_EN.srt"
+languages = ['EN-US','ZH']
+
+def translate_subtitle(input_file,language,dict=''):
+    output_file = input_file.rsplit('.', 1)[0] + "_"+language+".srt"
 
     with open(input_file, 'r', encoding='utf-8') as file:
         content = file.read()
     #最終行が正規表現にマッチしないので改行追加
     content = content + '\n\n'
     # 字幕のテキスト部分を抽出
-    pattern = re.compile(r'\d+\n\d{2}:\d{2}:\d{2}.\d{3} --> \d{2}:\d{2}:\d{2}.\d{3}\n(.*?)\n\n', re.DOTALL)
+    pattern = re.compile(r'\d+\n\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}\n(.*?)\n\n', re.DOTALL)
     matches = pattern.findall(content)
 
     translated_content = content
@@ -27,16 +29,16 @@ def translate_subtitle(input_file,dict=''):
         result=''
         if len(dict)>0:
             # テキストを英語に翻訳
-            result = translator.translate_text(text, source_lang="JA", target_lang="EN-US",glossary=dict)
+            result = translator.translate_text(text, source_lang='JA', target_lang=language,glossary=dict)
         else:
-            result = translator.translate_text(text, source_lang="JA", target_lang="EN-US")
+            result = translator.translate_text(text, source_lang='JA', target_lang=language)
         print('Result : '+result.text)
         translated_content = translated_content.replace(text, result.text, 1)
 
     # 翻訳された内容を新しいファイルに書き出し
     with open(output_file, 'w', encoding='utf-8') as file:
         file.write(translated_content)
-        print('ファイル出力完了' + output_file)
+        print('\nファイル出力完了' + output_file)
 
 def get_glossaries():
     '''Glossaryのリストを取得する'''
@@ -60,21 +62,23 @@ if __name__ == "__main__":
         API_status = f"Document usage: {usage.document.count} of {usage.document.limit}"
     # Glossaryリストの取得
     glossary_list = get_glossaries()
-    glossary_names = [[glossary[0],glossary[1].target_lang] for glossary in glossary_list]
+    glossary_names = [[glossary[1].target_lang,glossary[0]] for glossary in glossary_list]
 
     button_col = [
         [sg.Button('表示', key = '-DISPLAY-')],
-        [sg.Button('更新', key = '-UPDATE-')]
+        [sg.Button('更新', key = '-UPDATE-')],
+        [sg.Text('')],
+        [sg.Button('削除', key = '-DEL-BUTTON-')]
     ]
 
     frame1 = sg.Frame('',
         [
             [
-                sg.Table(values=glossary_names, headings=['辞書','言語'], col_widths=[10,6],auto_size_columns=False, key='-GLOSSARY-LIST-',justification='left'),
+                sg.Table(values=glossary_names, headings=['言語','辞書'], col_widths=[6,10],auto_size_columns=False, key='-GLOSSARY-LIST-',justification='left'),
                 sg.Column(button_col)
             ],
             [
-                sg.Button('辞書削除', key = '-DEL-BUTTON-'),
+                sg.Input('言語', key='-GLOSSARY-LANG-', size=(10,50)),
                 sg.Input('辞書名', key='-GLOSSARY-NAME-', size=(10,50)),
                 sg.Text('->')
             ]
@@ -86,9 +90,9 @@ if __name__ == "__main__":
         [
             [sg.Table(values=[],headings=["Source", "Target"], col_widths=[15,15], auto_size_columns=False, key='-WORD-TABLE-')],
             [
-                sg.Input('JP', key='-SOURCE-WORD-', size=(10,50)),
+                sg.Input('原語', key='-SOURCE-WORD-', size=(10,50)),
                 sg.Text('->'),
-                sg.Input('EN', key='-TARGET-WORD-', size=(10,50)),
+                sg.Input('翻訳', key='-TARGET-WORD-', size=(10,50)),
                 sg.Button('登録', key = '-ADD-BUTTON-')
             ]
         ],
@@ -109,6 +113,7 @@ if __name__ == "__main__":
             sg.FileBrowse('srtファイル選択',key="file")
         ],
         [
+            sg.Combo(languages,default_value=languages[0],key='-LANGUAGE-COMBO-'),
             sg.Checkbox('辞書を利用する', key = '-USE-GLS-'),
             sg.Button('翻訳実行', key = '-RUN-')
         ]
@@ -125,8 +130,8 @@ if __name__ == "__main__":
         elif event == '-DISPLAY-':
             # 選択されたGlossary名を取得
             if values['-GLOSSARY-LIST-']:
-                window['-GLOSSARY-NAME-'].update(glossary_names[values['-GLOSSARY-LIST-'][0]][0])
-                selected_glossary_name = glossary_names[values['-GLOSSARY-LIST-'][0]][0]
+                window['-GLOSSARY-NAME-'].update(glossary_names[values['-GLOSSARY-LIST-'][0]][1])
+                selected_glossary_name = glossary_names[values['-GLOSSARY-LIST-'][0]][1]
                 for name, glossary in glossary_list:
                     if name == selected_glossary_name:
                         # Glossaryに登録された単語を取得して表示
@@ -137,17 +142,17 @@ if __name__ == "__main__":
         elif event == '-RUN-':
             if values['-USE-GLS-']:
                 if values['-GLOSSARY-LIST-']:
-                    print('辞書を使用します。 '+glossary_names[values['-GLOSSARY-LIST-'][0]][0])
-                    translate_subtitle(values['-FILE-PATH-'],glossary_list[values['-GLOSSARY-LIST-'][0]][1].glossary_id)
+                    print('辞書を使用します。 '+glossary_names[values['-GLOSSARY-LIST-'][0]][1])
+                    translate_subtitle(values['-FILE-PATH-'],values['-LANGUAGE-COMBO-'],glossary_list[values['-GLOSSARY-LIST-'][0]][1].glossary_id)
                 else:
                     print('辞書を選択してください。')
             else:
-                translate_subtitle(values['-FILE-PATH-'])
+                translate_subtitle(values['-FILE-PATH-'],values['-LANGUAGE-COMBO-'])
 
         elif event == '-ADD-BUTTON-' and len(values['-GLOSSARY-NAME-'])>0:
             word_dic = {}
             if len(values['-GLOSSARY-LIST-'])>0:
-                if values['-GLOSSARY-NAME-'] == values['-GLOSSARY-LIST-'][0]:
+                if values['-GLOSSARY-NAME-'] == glossary_names[values['-GLOSSARY-LIST-'][0]][1]:
                     for name, glossary in glossary_list:
                         if name == selected_glossary_name:
                             # Glossaryに登録された単語を取得して表示
@@ -156,8 +161,8 @@ if __name__ == "__main__":
                             break
             my_glossary = translator.create_glossary(
                 values['-GLOSSARY-NAME-'],
-                source_lang="JA",
-                target_lang="EN-US",
+                source_lang='JA',
+                target_lang=values['-GLOSSARY-LANG-'],
                 entries=word_dic | {values['-SOURCE-WORD-']:values['-TARGET-WORD-']}
             )
             print(
@@ -169,6 +174,9 @@ if __name__ == "__main__":
                 #words = translator.get_glossary_entries(glossary)
                 window['-WORD-TABLE-'].update([glossary[0] for glossary in get_glossaries()])
             window['-WORD-TABLE-'].update([[key, value] for key, value in (word_dic | {values['-SOURCE-WORD-']:values['-TARGET-WORD-']}).items()])
+            
+            glossary_list = get_glossaries()
+            glossary_names = [[glossary[1].target_lang,glossary[0]] for glossary in glossary_list]
 
         elif event == '-DEL-BUTTON-':
             for glossary in translator.list_glossaries():
@@ -177,7 +185,9 @@ if __name__ == "__main__":
                     print('辞書削除完了 '+glossary.name)
 
         elif event == '-UPDATE-':
-            window['-GLOSSARY-LIST-'].update([[glossary[0],glossary[1].target_lang] for glossary in get_glossaries()])
+            glossary_list = get_glossaries()
+            glossary_names = [[glossary[1].target_lang,glossary[0]] for glossary in glossary_list]
+            window['-GLOSSARY-LIST-'].update([[glossary[1].target_lang,glossary[0]] for glossary in glossary_list])
             print('リスト更新完了')
 
     # ウィンドウを閉じる
