@@ -8,6 +8,7 @@ import settings
 translator = deepl.Translator(settings.DEEPL_API_KEY)
 
 languages = ['EN-US','ZH']
+filepath=''
 
 def translate_subtitle(input_file,language,dict=''):
     output_file = input_file.rsplit('.', 1)[0] + "_"+language+".srt"
@@ -46,9 +47,7 @@ def get_glossaries():
     return [(glossary.name, glossary) for glossary in glossaries]
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python translate_srt.py [srt file path]")
-    else:
+    if len(sys.argv) >= 2:
         filepath = sys.argv[1]
 
     usage = translator.get_usage()
