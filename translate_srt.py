@@ -129,6 +129,7 @@ if __name__ == "__main__":
         elif event == '-DISPLAY-':
             # 選択されたGlossary名を取得
             if values['-GLOSSARY-LIST-']:
+                window['-GLOSSARY-LANG-'].update(glossary_names[values['-GLOSSARY-LIST-'][0]][0])
                 window['-GLOSSARY-NAME-'].update(glossary_names[values['-GLOSSARY-LIST-'][0]][1])
                 selected_glossary_name = glossary_names[values['-GLOSSARY-LIST-'][0]][1]
                 for name, glossary in glossary_list:
