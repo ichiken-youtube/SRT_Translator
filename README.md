@@ -14,7 +14,7 @@ Windowsでの動作を想定しています。
 `setup.bat`を実行してください。必要なライブラリのインストールと設定ファイルの生成が実行されます。  
 
 必要なライブラリのインストールを手動で実行する場合は  
-`pip install PySimpleGUI deepl`  
+`pip install FreeSimpleGUI deepl`  
 
 設定ファイル`settings.py`にDeepLのAPIキーを記入してください。  
 `DEEPL_API_KEY = "xxxxxxxx-xxxx-......:fx"`
