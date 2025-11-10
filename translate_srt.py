@@ -1,7 +1,7 @@
 import sys
 import re
 import deepl
-import PySimpleGUI as sg
+import FreeSimpleGUI as sg
 import settings
 
 # DeepL APIキーを設定
